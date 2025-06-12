@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Notepad</title>
+  <title>Secret Chat</title>
   <style>
     body {
       background-color: #f4f4f4;
@@ -76,15 +76,25 @@
     const secretKey = document.getElementById("secretKey");
     const sendBtn = document.getElementById("sendBtn");
 
-    let messages = JSON.parse(localStorage.getItem("chatMessages") || "[]");
+    let messages = [];
+
+    function getStorageKey() {
+      return `chatMessages_${secretCode}`;
+    }
 
     function displayMessages() {
       chatBox.value = messages.map(msg => `> ${msg}`).join("\n");
     }
 
+    function loadMessages() {
+      const stored = localStorage.getItem(getStorageKey());
+      messages = stored ? JSON.parse(stored) : [];
+      displayMessages();
+    }
+
     secretKey.addEventListener("input", () => {
       if (secretKey.value === secretCode) {
-        displayMessages();
+        loadMessages();
       } else {
         chatBox.value = "";
       }
@@ -98,7 +108,7 @@
       const msg = messageInput.value.trim();
       if (msg) {
         messages.push(msg);
-        localStorage.setItem("chatMessages", JSON.stringify(messages));
+        localStorage.setItem(getStorageKey(), JSON.stringify(messages));
         messageInput.value = "";
         displayMessages();
       }
