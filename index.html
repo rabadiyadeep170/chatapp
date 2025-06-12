@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Secret Chat</title>
+  <title>Secret Chat (Realtime)</title>
   <style>
     body {
       background-color: #f4f4f4;
@@ -70,26 +70,44 @@
   </div>
 
   <script>
-    const secretCode = "deep";
+    const secretCode = "peacock123";
     const chatBox = document.getElementById("chatBox");
     const messageInput = document.getElementById("messageInput");
     const secretKey = document.getElementById("secretKey");
     const sendBtn = document.getElementById("sendBtn");
 
-    let messages = [];
+    const apiUrl = "https://api.npoint.io/123456789abcdef12345"; // Replace with your real npoint.io URL
 
-    function getStorageKey() {
-      return `chatMessages_${secretCode}`;
+    async function loadMessages() {
+      try {
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+        displayMessages(data);
+      } catch (err) {
+        chatBox.value = "Error loading messages.";
+      }
     }
 
-    function displayMessages() {
+    function displayMessages(messages) {
       chatBox.value = messages.map(msg => `> ${msg}`).join("\n");
     }
 
-    function loadMessages() {
-      const stored = localStorage.getItem(getStorageKey());
-      messages = stored ? JSON.parse(stored) : [];
-      displayMessages();
+    async function sendMessage(msg) {
+      try {
+        const response = await fetch(apiUrl);
+        const messages = await response.json();
+        messages.push(msg);
+        await fetch(apiUrl, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(messages)
+        });
+        displayMessages(messages);
+      } catch (err) {
+        alert("Failed to send message.");
+      }
     }
 
     secretKey.addEventListener("input", () => {
@@ -107,12 +125,17 @@
       }
       const msg = messageInput.value.trim();
       if (msg) {
-        messages.push(msg);
-        localStorage.setItem(getStorageKey(), JSON.stringify(messages));
+        sendMessage(msg);
         messageInput.value = "";
-        displayMessages();
       }
     });
+
+    // Optional: auto-refresh every 10 seconds
+    setInterval(() => {
+      if (secretKey.value === secretCode) {
+        loadMessages();
+      }
+    }, 10000);
   </script>
 </body>
 </html>
